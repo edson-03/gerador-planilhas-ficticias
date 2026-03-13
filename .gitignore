@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Streamlit
+.streamlit/
+
+# Dados gerados (evitar subir arquivos grandes de teste)
+*.csv
+*.xlsx
+
+# IDEs
+.vscode/
+.idea/
