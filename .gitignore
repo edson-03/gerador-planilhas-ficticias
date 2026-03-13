@@ -16,3 +16,7 @@ ENV/
 # IDEs
 .vscode/
 .idea/
+
+## 🤝 Iniciar o servidor 
+cd c:\Users\Mauro\Documents\csv
+python -m streamlit run app.py

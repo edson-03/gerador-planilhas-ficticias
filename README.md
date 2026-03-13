@@ -64,3 +64,4 @@ Sinta-se à vontade para abrir uma *issue* ou enviar um *pull request* com melho
 
 ---
 Desenvolvido com ❤️ para facilitar a vida de desenvolvedores e analistas de dados.
+
