@@ -45,7 +45,7 @@ def generate_data(rows, types, start_date=None, end_date=None):
     
     # Se tivermos valor e quantidade, podemos criar o Total
     if 'Valor unitario' in data and 'Quantidade' in data:
-        data['Total'] = [round(q * v, 2) for q, v in zip(data['Quantidade'], data['Valor unitario'])]
+        data['Total'] = [round(float(q) * float(v), 2) for q, v in zip(data['Quantidade'], data['Valor unitario'])]
     
     df = pd.DataFrame(data)
     
@@ -56,8 +56,8 @@ def generate_data(rows, types, start_date=None, end_date=None):
         df['Semana'] = df['Data'].dt.isocalendar().week
         df['Mes'] = df['Data'].dt.month
         df['Ano'] = df['Data'].dt.year
-        # Formata a data de volta para string se necessário ou deixa como datetime
-        df['Data'] = df['Data'].dt.strftime('%Y-%m-%d')
+        # Deixamos como datetime internamente para facilitar exportação, 
+        # mas no CSV/XLSX o pandas cuidará da formatação
         
     return df
 
@@ -73,7 +73,10 @@ def main():
     print(f"Gerando {args.rows} linhas com os tipos: {', '.join(args.types)}...")
     df = generate_data(args.rows, args.types)
     
-    df.to_csv(args.output, index=False, encoding='utf-8-sig')
+    if args.output.endswith('.xlsx'):
+        df.to_excel(args.output, index=False)
+    else:
+        df.to_csv(args.output, index=False, encoding='utf-8-sig', decimal=',')
     print(f"Arquivo '{args.output}' gerado com sucesso!")
 
 if __name__ == "__main__":

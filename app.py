@@ -84,15 +84,34 @@ if st.button("🚀 Gerar Dados", type="primary"):
             st.subheader("Preview dos Dados")
             st.dataframe(df.head(10), use_container_width=True)
             
-            # Download
-            csv = df.to_csv(index=False, encoding='utf-8-sig').encode('utf-8-sig')
+            # Opções de Download
+            st.write("---")
+            st.subheader("📥 Baixar Planilha")
             
-            st.download_button(
-                label="📥 Baixar Planilha (CSV)",
-                data=csv,
-                file_name="dados_gerados.csv",
-                mime="text/csv",
-            )
+            c_csv, c_xlsx = st.columns(2)
+            
+            with c_csv:
+                # CSV formatado para Excel (ponto e vírgula e vírgula decimal)
+                csv = df.to_csv(index=False, encoding='utf-8-sig', sep=';', decimal=',').encode('utf-8-sig')
+                st.download_button(
+                    label="Baixar em CSV (Excel)",
+                    data=csv,
+                    file_name="dados_gerados.csv",
+                    mime="text/csv",
+                )
+            
+            with c_xlsx:
+                # Formato Excel nativo
+                output = io.BytesIO()
+                with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                    df.to_excel(writer, index=False, sheet_name='Dados')
+                xlsx_data = output.getvalue()
+                st.download_button(
+                    label="Baixar em XLSX (Excel Nativo)",
+                    data=xlsx_data,
+                    file_name="dados_gerados.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
             
             # Mini Dashboard se for vendas
             if vendas_mode and 'Total' in df.columns:
