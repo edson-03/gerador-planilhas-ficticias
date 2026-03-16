@@ -56,6 +56,14 @@ def generate_data(rows, types, start_date=None, end_date=None):
         df['Semana'] = df['Data'].dt.isocalendar().week
         df['Mes'] = df['Data'].dt.month
         df['Ano'] = df['Data'].dt.year
+        
+        # Adiciona o nome do mês
+        meses_map = {
+            1: 'Janeiro', 2: 'Fevereiro', 3: 'Março', 4: 'Abril', 5: 'Maio', 6: 'Junho',
+            7: 'Julho', 8: 'Agosto', 9: 'Setembro', 10: 'Outubro', 11: 'Novembro', 12: 'Dezembro'
+        }
+        df['Nome do Mês'] = df['Mes'].map(meses_map)
+        
         # Deixamos como datetime internamente para facilitar exportação, 
         # mas no CSV/XLSX o pandas cuidará da formatação
         
