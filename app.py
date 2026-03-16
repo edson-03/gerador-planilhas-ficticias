@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from generator import generate_data
 import io
+from datetime import datetime, date
 
 st.set_page_config(page_title="Gerador de Dados Fictícios", page_icon="📊", layout="wide")
 
@@ -49,6 +50,16 @@ with st.sidebar:
             extrair_nome_mes = st.checkbox("Nome do Mês", value=False)
             extrair_ano = st.checkbox("Ano", value=True)
             extrair_semana = st.checkbox("Semana", value=False)
+        
+        # Novo: Seletor de intervalo de datas
+        st.write("**Intervalo de Datas**")
+        hoje = date.today()
+        ano_passado = hoje.replace(year=hoje.year - 1)
+        data_inicio, data_fim = st.date_input(
+            "Selecione o período",
+            value=(ano_passado, hoje),
+            max_value=hoje
+        )
 
     st.write("---")
     st.subheader("💰 Dados de Vendas")
@@ -56,12 +67,15 @@ with st.sidebar:
     if incluir_vendas:
         col7, col8 = st.columns(2)
         with col7:
+            id_pedido = st.checkbox("ID do Pedido", value=True)
+            sku = st.checkbox("SKU", value=False)
             produto = st.checkbox("Produto", value=True)
             categoria = st.checkbox("Categoria", value=True)
-            quantidade = st.checkbox("Quantidade", value=True)
         with col8:
+            quantidade = st.checkbox("Quantidade", value=True)
             valor_unitario = st.checkbox("Valor Unit.", value=True)
-            total_venda = st.checkbox("Total (Soma)", value=True, help="Calculado automaticamente: Qtd x Valor Unit.")
+            total_venda = st.checkbox("Total (Soma)", value=True)
+            status_venda = st.checkbox("Status", value=True)
 
 # Mapeamento dos checkboxes para as chaves do generator
 selected_types = []
@@ -76,6 +90,9 @@ if cidade: selected_types.append('cidade')
 if estado: selected_types.append('estado')
 if cep: selected_types.append('cep')
 
+start_date_param = None
+end_date_param = None
+
 if incluir_data:
     if data_base: selected_types.append('data')
     if extrair_dia: selected_types.append('dia')
@@ -83,20 +100,25 @@ if incluir_data:
     if extrair_nome_mes: selected_types.append('nome_mes')
     if extrair_ano: selected_types.append('ano')
     if extrair_semana: selected_types.append('semana')
+    start_date_param = data_inicio
+    end_date_param = data_fim
 
 if incluir_vendas:
+    if id_pedido: selected_types.append('id_pedido')
+    if sku: selected_types.append('sku')
     if produto: selected_types.append('produto')
     if categoria: selected_types.append('categoria')
     if quantidade: selected_types.append('quantidade')
     if valor_unitario: selected_types.append('valor_unitario')
     if total_venda: selected_types.append('total')
+    if status_venda: selected_types.append('status')
 
 if st.button("🚀 Gerar Dados", type="primary"):
     if not selected_types:
         st.warning("Por favor, selecione pelo menos um campo para gerar os dados.")
     else:
         with st.spinner("Gerando dados..."):
-            df = generate_data(rows, selected_types)
+            df = generate_data(rows, selected_types, start_date=start_date_param, end_date=end_date_param)
             
             st.success(f"✅ {rows} linhas geradas com sucesso!")
             
@@ -131,17 +153,34 @@ if st.button("🚀 Gerar Dados", type="primary"):
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 )
             
-            # Mini Dashboard se for vendas
-            if incluir_vendas and 'Total' in df.columns:
+            # Mini Dashboard
+            if incluir_vendas or incluir_data:
                 st.write("---")
-                st.subheader("📈 Resumo das Vendas")
-                c1, c2, c3 = st.columns(3)
-                c1.metric("Faturamento Total", f"R$ {df['Total'].sum():,.2f}")
-                c2.metric("Qtd Total Itens", f"{df['Quantidade'].sum()}")
-                c3.metric("Ticket Médio", f"R$ {df['Total'].mean():,.2f}")
+                st.subheader("📈 Dashboard de Insights")
                 
-                if 'Categoria' in df.columns:
-                    st.bar_chart(df.groupby('Categoria')['Total'].sum())
+                if incluir_vendas and 'Total' in df.columns:
+                    c1, c2, c3 = st.columns(3)
+                    c1.metric("Faturamento Total", f"R$ {df['Total'].sum():,.2f}")
+                    c2.metric("Qtd Total Itens", f"{df['Quantidade'].sum()}")
+                    c3.metric("Ticket Médio", f"R$ {df['Total'].mean():,.2f}")
+                
+                chart_col1, chart_col2 = st.columns(2)
+                
+                with chart_col1:
+                    if incluir_vendas and 'Categoria' in df.columns:
+                        st.write("**Vendas por Categoria**")
+                        st.bar_chart(df.groupby('Categoria')['Total'].sum() if 'Total' in df.columns else df['Categoria'].value_counts())
+                
+                with chart_col2:
+                    if incluir_data and 'Data' in df.columns and 'Total' in df.columns:
+                        st.write("**Evolução de Vendas no Tempo**")
+                        # Agrupa por data e soma o total
+                        df_time = df.groupby('Data')['Total'].sum().reset_index()
+                        df_time = df_time.sort_values('Data')
+                        st.line_chart(df_time.set_index('Data'))
+                    elif incluir_vendas and 'Status' in df.columns:
+                        st.write("**Distribuição por Status**")
+                        st.bar_chart(df['Status'].value_counts())
 
 else:
     st.info("Selecione as opções na barra lateral e clique em 'Gerar Dados' para começar.")

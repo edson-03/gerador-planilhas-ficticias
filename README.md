@@ -6,10 +6,11 @@ Este é um projeto em Python que permite gerar planilhas (CSV) com dados fictíc
 
 - **Dados Pessoais**: Nome, Email, CPF, Telefone, Profissão, Empresa.
 - **Localização**: Endereço, Cidade, Estado, CEP.
-- **Módulo de Vendas**: Geração automática de produtos, categorias, quantidades, valores unitários e cálculo do valor total.
-- **Módulo de Tempo**: Extração automática de Dia, Semana, Mês e Ano a partir da data da venda.
-- **Interface Web**: Interface amigável para selecionar campos e baixar o arquivo.
-- **Compatibilidade**: Exportação em CSV com codificação `utf-8-sig` (abre perfeitamente no Excel).
+- **Módulo de Vendas**: Geração de ID do Pedido, SKU, Produto, Categoria, Quantidade, Valor Unitário, Status (Pago, Pendente, etc) e cálculo do Valor Total.
+- **Módulo de Tempo**: Seletor de intervalo de datas customizado, extração de Dia, Semana, Mês (Número e Nome) e Ano.
+- **Interface Web**: Interface amigável com filtros, preview de dados e Dashboard de insights em tempo real.
+- **Gráficos**: Visualização de faturamento por categoria e evolução de vendas no tempo.
+- **Compatibilidade**: Exportação em CSV (Excel) e XLSX (Excel Nativo).
 
 ## 🛠️ Tecnologias Utilizadas
 

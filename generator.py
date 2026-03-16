@@ -2,6 +2,7 @@ import pandas as pd
 from faker import Faker
 import argparse
 import random
+import string
 from datetime import datetime, timedelta
 
 def generate_data(rows, types, start_date=None, end_date=None):
@@ -43,11 +44,14 @@ def generate_data(rows, types, start_date=None, end_date=None):
         if 'nome_mes' in types: data['Nome do Mês'] = dates_dt.month.map(meses_map)
         if 'semana' in types: data['Semana'] = dates_dt.isocalendar().week
 
-    # Se 'produto' ou 'categoria' forem solicitados, sorteamos do pool de vendas
-    if 'produto' in types or 'categoria' in types:
+    # Se 'produto' ou 'categoria' ou 'sku' forem solicitados, sorteamos do pool de vendas
+    if any(f in types for f in ['produto', 'categoria', 'sku']):
         selections = [random.choice(vendas_pool) for _ in range(rows)]
         if 'produto' in types: data['Produto'] = [s[0] for s in selections]
         if 'categoria' in types: data['Categoria'] = [s[1] for s in selections]
+        if 'sku' in types:
+            # Gera um SKU baseado no nome do produto
+            data['SKU'] = [f"{s[0][:3].upper()}-{random.randint(100, 999)}" for s in selections]
 
     # Se 'total' for solicitado, precisamos garantir que quantidade e valor_unitario existam
     if 'total' in types:
@@ -67,7 +71,9 @@ def generate_data(rows, types, start_date=None, end_date=None):
         'estado': fake.state_abbr,
         'cep': fake.postcode,
         'quantidade': lambda: random.randint(1, 5),
-        'valor_unitario': lambda: round(random.uniform(50.0, 5000.0), 2)
+        'valor_unitario': lambda: round(random.uniform(50.0, 5000.0), 2),
+        'id_pedido': lambda: f"ORD-{random.randint(10000, 99999)}",
+        'status': lambda: random.choice(["Pago", "Pendente", "Cancelado", "Em Processamento"])
     }
     
     for t in types:
