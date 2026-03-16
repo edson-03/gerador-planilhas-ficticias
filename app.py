@@ -4,183 +4,180 @@ from generator import generate_data
 import io
 from datetime import datetime, date
 
-st.set_page_config(page_title="Gerador de Dados Fictícios", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Gerador Pro", page_icon="📊", layout="wide")
 
-st.title("📊 Gerador de Planilha de Dados Fictícios")
+# Custom CSS para melhorar a interface
 st.markdown("""
-Crie planilhas personalizadas com dados aleatórios para testes, apresentações ou estudos.
-""")
+    <style>
+    .main {
+        background-color: #f8f9fa;
+    }
+    .stButton>button {
+        width: 100%;
+        border-radius: 5px;
+        height: 3em;
+        background-color: #007bff;
+        color: white;
+    }
+    .stDownloadButton>button {
+        width: 100%;
+        border-radius: 5px;
+        height: 3em;
+    }
+    .css-1r6slb0 {
+        padding: 2rem 1rem;
+    }
+    </style>
+    """, unsafe_ascii=False)
 
+st.title("📊 Gerador de Dados Fictícios Pro")
+st.info("Configure as opções na barra lateral e utilize as abas para organizar seus campos.")
+
+# --- BARRA LATERAL ---
 with st.sidebar:
-    st.header("⚙️ Configurações")
-    rows = st.number_input("Quantidade de linhas", min_value=1, max_value=10000, value=100)
+    st.header("⚙️ Configurações Gerais")
+    rows = st.number_input("Quantidade de linhas", min_value=1, max_value=50000, value=100)
     
     st.write("---")
-    st.subheader("👤 Dados Pessoais")
+    st.subheader("🏢 Personalização")
+    empresa_check = st.checkbox("Incluir Empresa")
+    company_name_input = None
+    if empresa_check:
+        company_name_input = st.text_input("Nome da Empresa", placeholder="Deixe em branco para aleatório")
+    
+    st.write("---")
+    st.subheader("📅 Período de Datas")
+    hoje = date.today()
+    ano_passado = hoje.replace(year=hoje.year - 1)
+    data_inicio, data_fim = st.date_input(
+        "Intervalo",
+        value=(ano_passado, hoje),
+        max_value=hoje
+    )
+
+# --- CORPO PRINCIPAL (ABAS) ---
+tab1, tab2, tab3, tab4 = st.tabs(["👤 Pessoais & Documentos", "📍 Localização", "🕒 Tempo", "💰 Vendas"])
+
+selected_types = []
+
+with tab1:
     col1, col2 = st.columns(2)
     with col1:
-        nome = st.checkbox("Nome", value=True)
-        email = st.checkbox("Email", value=True)
-        cpf = st.checkbox("CPF")
+        st.markdown("### 👤 Básicos")
+        if st.checkbox("Nome", value=True): selected_types.append('nome')
+        if st.checkbox("Email", value=True): selected_types.append('email')
+        if st.checkbox("Telefone"): selected_types.append('telefone')
+        if st.checkbox("Profissão"): selected_types.append('profissao')
+        if empresa_check: selected_types.append('empresa')
     with col2:
-        telefone = st.checkbox("Telefone")
-        profissao = st.checkbox("Profissão")
-        empresa = st.checkbox("Empresa")
-        
-    st.write("---")
-    st.subheader("📍 Localização")
-    col3, col4 = st.columns(2)
-    with col3:
-        endereco = st.checkbox("Endereço")
-        cidade = st.checkbox("Cidade")
-    with col4:
-        estado = st.checkbox("Estado")
-        cep = st.checkbox("CEP")
+        st.markdown("### 🆔 Documentos")
+        if st.checkbox("CPF"): selected_types.append('cpf')
+        if st.checkbox("RG"): selected_types.append('rg')
+        if st.checkbox("CNPJ"): selected_types.append('cnpj')
 
-    st.write("---")
-    st.subheader("🕒 Informações de Tempo")
-    incluir_data = st.checkbox("Habilitar Datas", value=False)
-    if incluir_data:
-        data_base = st.checkbox("Data Completa", value=True)
-        col5, col6 = st.columns(2)
-        with col5:
-            extrair_dia = st.checkbox("Dia", value=False)
-            extrair_mes = st.checkbox("Mês (Nº)", value=False)
-        with col6:
-            extrair_nome_mes = st.checkbox("Nome do Mês", value=False)
-            extrair_ano = st.checkbox("Ano", value=True)
-            extrair_semana = st.checkbox("Semana", value=False)
-        
-        # Novo: Seletor de intervalo de datas
-        st.write("**Intervalo de Datas**")
-        hoje = date.today()
-        ano_passado = hoje.replace(year=hoje.year - 1)
-        data_inicio, data_fim = st.date_input(
-            "Selecione o período",
-            value=(ano_passado, hoje),
-            max_value=hoje
-        )
+with tab2:
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("### 🗺️ Endereço")
+        if st.checkbox("Endereço Completo"): selected_types.append('endereco')
+        if st.checkbox("CEP"): selected_types.append('cep')
+    with col2:
+        st.markdown("### 🏘️ Regional")
+        if st.checkbox("Estado (Consistente)"): selected_types.append('estado')
+        if st.checkbox("Cidade (Consistente)"): selected_types.append('cidade')
 
-    st.write("---")
-    st.subheader("💰 Dados de Vendas")
-    incluir_vendas = st.checkbox("Habilitar Vendas", value=False)
-    if incluir_vendas:
-        col7, col8 = st.columns(2)
-        with col7:
-            id_pedido = st.checkbox("ID do Pedido", value=True)
-            sku = st.checkbox("SKU", value=False)
-            produto = st.checkbox("Produto", value=True)
-            categoria = st.checkbox("Categoria", value=True)
-        with col8:
-            quantidade = st.checkbox("Quantidade", value=True)
-            valor_unitario = st.checkbox("Valor Unit.", value=True)
-            total_venda = st.checkbox("Total (Soma)", value=True)
-            status_venda = st.checkbox("Status", value=True)
+with tab3:
+    st.markdown("### 🕒 Detalhes Temporais")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        if st.checkbox("Data Completa"): selected_types.append('data')
+        if st.checkbox("Dia"): selected_types.append('dia')
+    with c2:
+        if st.checkbox("Mês (Nº)"): selected_types.append('mes')
+        if st.checkbox("Nome do Mês"): selected_types.append('nome_mes')
+    with c3:
+        if st.checkbox("Ano"): selected_types.append('ano')
+        if st.checkbox("Semana do Ano"): selected_types.append('semana')
 
-# Mapeamento dos checkboxes para as chaves do generator
-selected_types = []
-if nome: selected_types.append('nome')
-if email: selected_types.append('email')
-if cpf: selected_types.append('cpf')
-if telefone: selected_types.append('telefone')
-if profissao: selected_types.append('profissao')
-if empresa: selected_types.append('empresa')
-if endereco: selected_types.append('endereco')
-if cidade: selected_types.append('cidade')
-if estado: selected_types.append('estado')
-if cep: selected_types.append('cep')
+with tab4:
+    st.markdown("### 💰 Itens e Valores")
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.checkbox("Produto (Preço Inteligente)"): selected_types.append('produto')
+        if st.checkbox("Categoria"): selected_types.append('categoria')
+        if st.checkbox("SKU"): selected_types.append('sku')
+        if st.checkbox("ID do Pedido"): selected_types.append('id_pedido')
+    with c2:
+        if st.checkbox("Quantidade"): selected_types.append('quantidade')
+        if st.checkbox("Valor Unitário"): selected_types.append('valor_unitario')
+        if st.checkbox("Total (Calculado)"): selected_types.append('total')
+        if st.checkbox("Status da Venda"): selected_types.append('status')
+        if st.checkbox("Vendedor"): selected_types.append('vendedor')
 
-start_date_param = None
-end_date_param = None
+st.write("---")
 
-if incluir_data:
-    if data_base: selected_types.append('data')
-    if extrair_dia: selected_types.append('dia')
-    if extrair_mes: selected_types.append('mes')
-    if extrair_nome_mes: selected_types.append('nome_mes')
-    if extrair_ano: selected_types.append('ano')
-    if extrair_semana: selected_types.append('semana')
-    start_date_param = data_inicio
-    end_date_param = data_fim
-
-if incluir_vendas:
-    if id_pedido: selected_types.append('id_pedido')
-    if sku: selected_types.append('sku')
-    if produto: selected_types.append('produto')
-    if categoria: selected_types.append('categoria')
-    if quantidade: selected_types.append('quantidade')
-    if valor_unitario: selected_types.append('valor_unitario')
-    if total_venda: selected_types.append('total')
-    if status_venda: selected_types.append('status')
-
-if st.button("🚀 Gerar Dados", type="primary"):
+# --- BOTÃO DE GERAÇÃO ---
+if st.button("🚀 GERAR PLANILHA", type="primary"):
     if not selected_types:
-        st.warning("Por favor, selecione pelo menos um campo para gerar os dados.")
+        st.warning("Selecione pelo menos um campo nas abas acima.")
     else:
-        with st.spinner("Gerando dados..."):
-            df = generate_data(rows, selected_types, start_date=start_date_param, end_date=end_date_param)
+        with st.spinner("Processando dados de alta qualidade..."):
+            df = generate_data(rows, selected_types, 
+                               start_date=data_inicio, 
+                               end_date=data_fim,
+                               company_name=company_name_input if empresa_check else None)
             
             st.success(f"✅ {rows} linhas geradas com sucesso!")
             
-            # Mostrar preview
-            st.subheader("Preview dos Dados")
+            # Preview
+            st.subheader("📋 Preview (Top 10)")
             st.dataframe(df.head(10), use_container_width=True)
             
-            # Opções de Download
+            # Downloads
             st.write("---")
-            st.subheader("📥 Baixar Planilha")
+            st.subheader("📥 Exportar Arquivo")
+            down_col1, down_col2, down_col3 = st.columns(3)
             
-            c_csv, c_xlsx = st.columns(2)
-            
-            with c_csv:
+            with down_col1:
                 csv = df.to_csv(index=False, encoding='utf-8-sig', sep=';', decimal=',').encode('utf-8-sig')
-                st.download_button(
-                    label="Baixar em CSV (Excel)",
-                    data=csv,
-                    file_name="dados_gerados.csv",
-                    mime="text/csv",
-                )
+                st.download_button("Baixar CSV (Excel)", csv, "dados.csv", "text/csv")
             
-            with c_xlsx:
+            with down_col2:
                 output = io.BytesIO()
                 with pd.ExcelWriter(output, engine='openpyxl') as writer:
                     df.to_excel(writer, index=False, sheet_name='Dados')
-                xlsx_data = output.getvalue()
-                st.download_button(
-                    label="Baixar em XLSX (Excel Nativo)",
-                    data=xlsx_data,
-                    file_name="dados_gerados.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                )
-            
-            # Mini Dashboard
-            if incluir_vendas or incluir_data:
-                st.write("---")
-                st.subheader("📈 Dashboard de Insights")
+                st.download_button("Baixar XLSX (Nativo)", output.getvalue(), "dados.xlsx", "application/vnd.ms-excel")
                 
-                if incluir_vendas and 'Total' in df.columns:
-                    c1, c2, c3 = st.columns(3)
-                    c1.metric("Faturamento Total", f"R$ {df['Total'].sum():,.2f}")
-                    c2.metric("Qtd Total Itens", f"{df['Quantidade'].sum()}")
-                    c3.metric("Ticket Médio", f"R$ {df['Total'].mean():,.2f}")
+            with down_col3:
+                json_data = df.to_json(orient='records', indent=4, force_ascii=False).encode('utf-8')
+                st.download_button("Baixar JSON", json_data, "dados.json", "application/json")
+            
+            # Dashboards
+            if any(f in df.columns for f in ['Total', 'Categoria', 'Status', 'Vendedor']):
+                st.write("---")
+                st.subheader("📈 Análise Rápida")
+                
+                m1, m2, m3 = st.columns(3)
+                if 'Total' in df.columns:
+                    m1.metric("Faturamento", f"R$ {df['Total'].sum():,.2f}")
+                    m2.metric("Ticket Médio", f"R$ {df['Total'].mean():,.2f}")
+                if 'Quantidade' in df.columns:
+                    m3.metric("Itens Vendidos", int(df['Quantidade'].sum()))
                 
                 chart_col1, chart_col2 = st.columns(2)
-                
                 with chart_col1:
-                    if incluir_vendas and 'Categoria' in df.columns:
-                        st.write("**Vendas por Categoria**")
-                        st.bar_chart(df.groupby('Categoria')['Total'].sum() if 'Total' in df.columns else df['Categoria'].value_counts())
-                
-                with chart_col2:
-                    if incluir_data and 'Data' in df.columns and 'Total' in df.columns:
-                        st.write("**Evolução de Vendas no Tempo**")
-                        # Agrupa por data e soma o total
-                        df_time = df.groupby('Data')['Total'].sum().reset_index()
-                        df_time = df_time.sort_values('Data')
-                        st.line_chart(df_time.set_index('Data'))
-                    elif incluir_vendas and 'Status' in df.columns:
+                    if 'Categoria' in df.columns and 'Total' in df.columns:
+                        st.write("**Faturamento por Categoria**")
+                        st.bar_chart(df.groupby('Categoria')['Total'].sum())
+                    elif 'Status' in df.columns:
                         st.write("**Distribuição por Status**")
                         st.bar_chart(df['Status'].value_counts())
-
-else:
-    st.info("Selecione as opções na barra lateral e clique em 'Gerar Dados' para começar.")
+                
+                with chart_col2:
+                    if 'Data' in df.columns and 'Total' in df.columns:
+                        st.write("**Evolução Diária**")
+                        df_time = df.groupby('Data')['Total'].sum().reset_index().sort_values('Data')
+                        st.line_chart(df_time.set_index('Data'))
+                    elif 'Vendedor' in df.columns:
+                        st.write("**Ranking Vendedores**")
+                        st.bar_chart(df['Vendedor'].value_counts())
