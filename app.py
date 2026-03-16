@@ -28,7 +28,7 @@ st.markdown("""
         padding: 2rem 1rem;
     }
     </style>
-    """, unsafe_ascii=False)
+    """, unsafe_allow_html=True)
 
 st.title("📊 Gerador de Dados Fictícios Pro")
 st.info("Configure as opções na barra lateral e utilize as abas para organizar seus campos.")
