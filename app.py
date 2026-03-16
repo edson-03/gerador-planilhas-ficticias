@@ -59,6 +59,7 @@ with st.sidebar:
 tab1, tab2, tab3, tab4 = st.tabs(["👤 Pessoais & Documentos", "📍 Localização", "🕒 Tempo", "💰 Vendas"])
 
 selected_types = []
+num_vendedores_input = None
 
 with tab1:
     col1, col2 = st.columns(2)
@@ -112,7 +113,10 @@ with tab4:
         if st.checkbox("Valor Unitário"): selected_types.append('valor_unitario')
         if st.checkbox("Total (Calculado)"): selected_types.append('total')
         if st.checkbox("Status da Venda"): selected_types.append('status')
-        if st.checkbox("Vendedor"): selected_types.append('vendedor')
+        vendedor_check = st.checkbox("Vendedor")
+        if vendedor_check:
+            selected_types.append('vendedor')
+            num_vendedores_input = st.number_input("Quantidade de Vendedores únicos", min_value=1, max_value=100, value=5)
 
 st.write("---")
 
@@ -125,7 +129,8 @@ if st.button("🚀 GERAR PLANILHA", type="primary"):
             df = generate_data(rows, selected_types, 
                                start_date=data_inicio, 
                                end_date=data_fim,
-                               company_name=company_name_input if empresa_check else None)
+                               company_name=company_name_input if empresa_check else None,
+                               num_vendedores=num_vendedores_input)
             
             st.success(f"✅ {rows} linhas geradas com sucesso!")
             

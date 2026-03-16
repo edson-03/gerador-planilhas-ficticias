@@ -5,7 +5,7 @@ import random
 import string
 from datetime import datetime, timedelta
 
-def generate_data(rows, types, start_date=None, end_date=None, company_name=None):
+def generate_data(rows, types, start_date=None, end_date=None, company_name=None, num_vendedores=None):
     fake = Faker('pt_BR')
     data = {}
     
@@ -91,6 +91,11 @@ def generate_data(rows, types, start_date=None, end_date=None, company_name=None
         if 'sku' in types: data['SKU'] = res_skus
 
     # 4. Outros Campos Dinâmicos (Faker e Lógica)
+    # Se num_vendedores for definido, cria uma lista fixa de nomes de vendedores
+    lista_vendedores = None
+    if 'vendedor' in types and num_vendedores and num_vendedores > 0:
+        lista_vendedores = [fake.name() for _ in range(num_vendedores)]
+
     mapping = {
         'nome': fake.name,
         'email': fake.email,
@@ -103,7 +108,7 @@ def generate_data(rows, types, start_date=None, end_date=None, company_name=None
         'cnpj': fake.cnpj,
         'rg': lambda: f"{random.randint(10, 99)}.{random.randint(100, 999)}.{random.randint(100, 999)}-{random.randint(0, 9)}",
         'cep': fake.postcode,
-        'vendedor': fake.name,
+        'vendedor': lambda: random.choice(lista_vendedores) if lista_vendedores else fake.name(),
         'quantidade': lambda: random.randint(1, 5),
         'id_pedido': lambda: f"ORD-{random.randint(10000, 99999)}",
         'status': lambda: random.choice(["Pago", "Pendente", "Cancelado", "Em Processamento"])
@@ -135,9 +140,10 @@ def main():
     parser.add_argument("-t", "--types", nargs="+", default=['nome', 'email', 'telefone'], help="Tipos de dados")
     parser.add_argument("-o", "--output", type=str, default="dados_ficticios.csv", help="Nome do arquivo de saída")
     parser.add_argument("-c", "--company", type=str, default=None, help="Nome da empresa")
+    parser.add_argument("-nv", "--num_vendedores", type=int, default=None, help="Quantidade de vendedores únicos")
     
     args = parser.parse_args()
-    df = generate_data(args.rows, args.types, company_name=args.company)
+    df = generate_data(args.rows, args.types, company_name=args.company, num_vendedores=args.num_vendedores)
     
     if args.output.endswith('.xlsx'): df.to_excel(args.output, index=False)
     elif args.output.endswith('.json'): df.to_json(args.output, orient='records', indent=4, force_ascii=False)
